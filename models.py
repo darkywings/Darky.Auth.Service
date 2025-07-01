@@ -23,7 +23,7 @@ def add_user_to_db(login: str, password: str):
             )
             conn.commit()
             return {
-                "Response": {"login": login, "password": password},
+                "Response": {"Login": login, "Password": password},
                 "StatusCode": 200,
                 "Message": "Пользователь успешно добавлен"
             }

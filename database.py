@@ -8,8 +8,8 @@ def init_db():
         cursor = conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                Login TEXT PRIMARY KEY,
-                Password TEXT NOT NULL
+                login TEXT PRIMARY KEY,
+                password TEXT NOT NULL
             )
         """)
         conn.commit()
