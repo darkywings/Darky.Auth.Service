@@ -9,8 +9,7 @@ def init_db():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 login TEXT PRIMARY KEY,
-                password TEXT NOT NULL,
-                uuid TEXT NOT NULL
+                password TEXT NOT NULL
             )
         """)
         conn.commit()

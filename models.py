@@ -19,7 +19,7 @@ def add_user_to_db(login: str, password: str):
             user_uuid = str(uuid.uuid4())
             cursor.execute(
                 "INSERT INTO users (login, password) VALUES (?, ?)",
-                (login, password, False)
+                (login, password)
             )
             conn.commit()
             return {
@@ -51,7 +51,7 @@ def sign_in_user(login: str, password: str):
         cursor = conn.cursor()
         cursor.execute(
             "SELECT login, password FROM users WHERE login = ?",
-            (login,)
+            (login)
         )
         user = cursor.fetchone()
         
