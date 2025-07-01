@@ -51,7 +51,7 @@ def sign_in_user(login: str, password: str):
         cursor = conn.cursor()
         cursor.execute(
             "SELECT login, password FROM users WHERE login = ?",
-            (login)
+            (login,)
         )
         user = cursor.fetchone()
         
