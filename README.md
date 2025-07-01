@@ -1,2 +1,19 @@
-# Darky.Auth.Service
-Custom service for authorization and registration players in Gml.Launcher (https://github.com/Gml-Launcher)
+# About
+
+Кастомный сервис авторизации и регистрации пользователей для Gml.Launcher
+Работает как интеграция с лаунчером GML в виде отдельного API
+Поддерживает работу через Docker Compose
+
+## Установка
+```git clone https://github.com/darkywings/Darky.Auth.Service.git```
+
+## Настройка
+Создайте копию .env.example, переименуйте в .env и в содержимом укажите IP и PORT на котором будет работать API этого сервиса
+
+## Запуск
+Сервис может работать как в докере так и напрямую
+Для прямого запуска просто запустите код main.py командой
+```python main.py```
+
+Для запуска из под Docker Compose встройте его в свой docker-compose.yml вставив следующий кусочек туда
+```_```
