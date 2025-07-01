@@ -1,7 +1,7 @@
 import sqlite3
 import uuid
 from fastapi import HTTPException
-from .database import get_db_connection
+from database import get_db_connection
 
 def add_user_to_db(login: str, password: str):
     if not login.strip() or not password.strip():

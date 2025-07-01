@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
-from .database import init_db
-from .models import add_user_to_db, sign_in_user
-from .schemas import UserCredentials
+from database import init_db
+from models import add_user_to_db, sign_in_user
+from schemas import UserCredentials
 from dotenv import load_dotenv
 import os
 import uvicorn
