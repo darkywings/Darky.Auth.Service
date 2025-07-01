@@ -9,4 +9,6 @@ RUN pip install python-dotenv==1.0.1
 
 COPY . .
 
+EXPOSE 8000
+
 CMD ["python" "main.py"]
