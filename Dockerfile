@@ -1,14 +1,14 @@
-FROM python:3.12
+FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN pip install fastapi==0.115.0
-RUN pip install uvicorn[standard]==0.30.6
-RUN pip install pydantic==2.9.2
-RUN pip install python-dotenv==1.0.1
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 8000
+ENV PORT=8000
 
-CMD ["python3", "main.py"]
+EXPOSE $PORT
+
+CMD ["sh", "-c", "python -m app.main"]
