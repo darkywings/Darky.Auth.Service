@@ -11,4 +11,4 @@ ENV PORT=8000
 
 EXPOSE $PORT
 
-CMD ["sh", "-c", "python -m app"]
+CMD ["sh", "-c", "python ."]
