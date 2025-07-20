@@ -24,7 +24,7 @@ darky-users-news-api
     context: ./Darky.UsersNews.Service
     dockerfile: Dockerfile
   ports:
-    - "${PORT_DARKY}: 8000"
+    - "${PORT_DARKY_API}: 8000"
   networks:
     - gml-network
   environment:
@@ -33,6 +33,6 @@ darky-users-news-api
   volumes:
     - ./data/AuthService:/app/data
 ```
-А также вставьте в .env файл строку ```PORT_DARKY=ЗДЕСЬ ЖЕЛАЕМЫЙ ПОРТ```
+А также вставьте в .env файл строку ```PORT_DARKY_API=ЗДЕСЬ ЖЕЛАЕМЫЙ ПОРТ```
 Например:
-```PORT_DARKY=8004```
+```PORT_DARKY_API=8004```
