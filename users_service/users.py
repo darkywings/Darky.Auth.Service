@@ -57,11 +57,11 @@ class Users:
         self.router.add_api_route("/edit_uuid", self.edit_uuid, methods=["POST"],
                                   name="Edit User Uuid",
                                   description="Editing user's uuid on custom one",
-                                  response_model=UserListResponse)
+                                  response_model=EditUuidResponse)
         self.router.add_api_route("/get_all", self.get_users, methods=["GET"],
                                   name="Get Users",
                                   description="Getting all existing users in database",
-                                  response_model=EditUuidResponse)
+                                  response_model=UserListResponse)
         self.logger.debug(f"Successful")
 
         self.__security_key__ = security_key
