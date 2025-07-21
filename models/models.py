@@ -59,6 +59,7 @@ class NewsDeleteRequest(NewsEditRequest):
 
 
 class NewsResponse(BaseModel):
+    id: Optional[int] = None
     title: str
     content: str
     date: str
