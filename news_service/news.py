@@ -35,7 +35,8 @@ class News:
         self.logger.debug(f"Inititalizing routers...")
         self.router = APIRouter(
             prefix="/news",
-            tags=["News"]
+            tags=["News"],
+            lifespan=self.lifespan
         )
         self.router.add_api_route("/add", self.add_post, methods=["POST"],
                                   name="Add new post",
@@ -60,6 +61,13 @@ class News:
         self.logger.info(f"News service is initialized!")
     
 
+    async def lifespan(self, api: APIRouter):
+        await self.correct_database()
+        self.logger.info("Hello")
+        yield
+        self.logger.info("Bye")
+
+
     def __db__(self):
         conn = sqlite3.connect("data/data.db")
         conn.row_factory = sqlite3.Row
@@ -69,11 +77,46 @@ class News:
     async def get_timestamp():
         current_time = datetime.now()
         msec = current_time.microsecond // 1000
-        return f"{current_time.strftime('%Y-%m-%dT%H:%M:%S')}.{msec:03d}Z"
+        tz="+03:00"
+        return f"{current_time.strftime('%Y-%m-%dT%H:%M:%S')}.{msec}{tz}"
     
     @staticmethod
     async def get_listener():
         return "Custom"
+    
+
+    async def correct_database(self):
+
+        self.logger.info("Correcting database...")
+        
+        conn = self.__db__()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("SELECT id, date, type FROM news")
+            posts = cursor.fetchall()
+
+            for post in posts:
+                post_id = post["id"]
+                new_date = post["date"].replace("Z", "+03:00")
+                new_type = await self.get_listener()
+                    
+                cursor.execute(
+                    "UPDATE news SET date = ?, type = ? WHERE id = ?",
+                    (new_date, new_type, post_id)
+                )
+                self.logger.debug(f"Updated post ID:{post_id} - date: {new_date}, type: {new_type}")
+                
+            conn.commit()
+            self.logger.info("Database correction completed successfully")
+            
+        except Exception as e:
+            conn.rollback()
+            self.logger.error(f"Error during database correction: {str(e)}", exc_info=True)
+            raise Exception("Failed to correct database")
+            
+        finally:
+            conn.close()
     
 
     async def add_post(self, data: NewsAddRequest):
@@ -192,7 +235,7 @@ class News:
         
     
 
-    async def get_posts(self, addId:bool=False):
+    async def get_posts(self):
         self.logger.info(f"Getting news list...")
 
         self.logger.debug(f"Accesssing to the database...")
@@ -200,15 +243,18 @@ class News:
         cursor = conn.cursor()
         self.logger.debug(f"Preparing news list...")
         try:
-            cursor.execute("SELECT title, content, date, type FROM news ORDER BY id")
+            cursor.execute("SELECT id, title, content, date, type FROM news ORDER BY id")
             posts = cursor.fetchall()
             
             news = [{
+                "id": post["id"],
                 "title": post["title"],
                 "content": post["content"],
                 "date": post["date"],
                 "type": post["type"]
             } for post in posts]
+            
+            news.reverse()
                 
             conn.close()
                 

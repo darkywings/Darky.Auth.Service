@@ -40,7 +40,8 @@ class Users:
         self.logger.debug(f"Inititalizing routers...")
         self.router = APIRouter(
             prefix="/users",
-            tags=["Users"]
+            tags=["Users"],
+            lifespan=self.lifespan
         )
         self.router.add_api_route("/auth", self.auth_user, methods=["POST"],
                                   name="Auth User",
@@ -67,6 +68,13 @@ class Users:
         self.__security_key__ = security_key
 
         self.logger.info(f"Users service is initialized!")
+
+
+
+    async def lifespan(self, api: APIRouter):
+        self.logger.info("Hello")
+        yield
+        self.logger.info("Bye")
 
 
 
