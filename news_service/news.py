@@ -1,17 +1,23 @@
+import os
+from typing import Annotated
+
 import sqlite3
+import dotenv
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 
 from models.models import *
-
 from logger.darky_logger import DarkyLogger
-from logger import config
+from configs.logger import config
+from security.admin import AdminSecurity
 
+dotenv.load_dotenv()
+security = AdminSecurity(os.getenv("JWT_SECRET_KEY"))
 
 class News:
 
     def __init__(self,
-                 security_key):
+                 admin):
         self.logger = DarkyLogger("darky.news", configuration=config.LOGGER)
 
         self.logger.info(f"Initializing News service...")
@@ -56,7 +62,7 @@ class News:
                                   response_model=NewsEditedResponse)
         self.logger.debug(f"Successful")
 
-        self.__security_key__ = security_key
+        self.admin = admin
 
         self.logger.info(f"News service is initialized!")
     
@@ -119,18 +125,12 @@ class News:
             conn.close()
     
 
-    async def add_post(self, data: NewsAddRequest):
-        if not data.AccessToken:
-            self.logger.error(f"AccessToken is required!")
+    async def add_post(self, data: NewsAddRequest, authorized: Annotated[str, Depends(security.get_user)]):
+        if authorized["type"] != "admin" or not await self.admin.key_is_valid(authorized["data"]["login"], authorized["data"]["secret_key"]):
+            self.logger.error(f"You're not authorized or not an admin")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Ключ доступа не указан"}
-            )
-        if data.AccessToken != self.__security_key__:
-            self.logger.error(f"Invalid AccessToken!")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Доступ запрещен: Неправильный ключ доступа"}
+                detail={"Message": "Вы не авторизованы или не являетесь администратором!"}
             )
         if not data.Title or not data.Content:
             self.logger.error(f"Content required!")
@@ -169,18 +169,12 @@ class News:
         }
 
     
-    async def delete_post(self, data: NewsDeleteRequest):
-        if not data.AccessToken:
-            self.logger.error(f"AccessToken is required!")
+    async def delete_post(self, data: NewsDeleteRequest, authorized: Annotated[str, Depends(security.get_user)]):
+        if authorized["type"] != "admin" or not await self.admin.key_is_valid(authorized["data"]["login"], authorized["data"]["secret_key"]):
+            self.logger.error(f"You're not authorized or not an admin")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Ключ доступа не указан"}
-            )
-        if data.AccessToken != self.__security_key__:
-            self.logger.error(f"Invalid AccessToken!")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Доступ запрещен: Неправильный ключ доступа"}
+                detail={"Message": "Вы не авторизованы или не являетесь администратором!"}
             )
         if not data.Id:
             self.logger.error(f"Post's ID required!")
@@ -273,18 +267,12 @@ class News:
             )
 
 
-    async def edit_post(self, data: NewsEditingRequest):
-        if not data.AccessToken:
-            self.logger.error(f"AccessToken is required!")
+    async def edit_post(self, data: NewsEditingRequest, authorized: Annotated[str, Depends(security.get_user)]):
+        if authorized["type"] != "admin" or not await self.admin.key_is_valid(authorized["data"]["login"], authorized["data"]["secret_key"]):
+            self.logger.error(f"You're not authorized or not an admin")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Ключ доступа не указан"}
-            )
-        if data.AccessToken != self.__security_key__:
-            self.logger.error(f"Invalid AccessToken!")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Доступ запрещен: Неправильный ключ доступа"}
+                detail={"Message": "Вы не авторизованы или не являетесь администратором!"}
             )
         if not data.Id:
             self.logger.error(f"Post's ID and new content are required!")

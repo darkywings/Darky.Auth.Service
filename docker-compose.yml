@@ -1,0 +1,23 @@
+name: darky
+
+services:
+
+  darky-users-news-api:
+    container_name: darky-users-news-api
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT}: 8000"
+    networks:
+      - darky-network
+    environment:
+      - TZ=Europe/Moscow
+    user: "${UID}:${GID}"
+    volumes:
+      - ./data/AuthService:/app/data
+
+networks:
+  darky-network:
+    attachable: true

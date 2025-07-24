@@ -39,6 +39,11 @@ LOGGER = {
             "handlers": ["console", "file"],
             "level": "DEBUG",
             "propagate": False
+        },
+        "darky.admins": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": False
         }
     }
 }
