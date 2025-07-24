@@ -2,10 +2,31 @@ from pydantic import BaseModel
 from typing import Optional
 
 
+class JwtRequest(BaseModel):
+    Login: str
+    Password: str
+
+class AdminSignupRequest(JwtRequest):
+    ConfirmPassword: str
+
+class JwtResponse(BaseModel):
+    Login: str
+    Jwt: str
+
+class WhoAmIResponse(BaseModel):
+    Type: str
+    Since: str
+    Login: str
+    IsValid: bool
+
+class AdminSignupResponse(JwtResponse):
+    Message: str
+
+
+
 class EditUuidRequest(BaseModel):
     Login: str
     NewUuid: str
-    AccessToken: str
 
 class UserRequest(BaseModel):
     Login: str
@@ -14,7 +35,7 @@ class UserAuthRequest(UserRequest):
     Password: str
 
 class UserDeleteRequest(UserRequest):
-    AccessToken: str
+    pass
 
 
 class UserResponse(BaseModel):
@@ -43,7 +64,7 @@ class EditUuidResponse(UserResponse):
 
 
 class NewsEditRequest(BaseModel):
-    AccessToken: str
+    pass
 
 class NewsAddRequest(NewsEditRequest):
     Title: str

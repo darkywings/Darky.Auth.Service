@@ -1,27 +1,45 @@
-# About
 
-Кастомный сервис авторизации и регистрации пользователей для Gml.Launcher, а также кастомный сервис новостей
-Работает как интеграция с лаунчером GML в виде отдельного API
-Поддерживает работу через Docker Compose
+# Darky Users & News Service
+### Описание
 
-## Установка
-```git clone https://github.com/darkywings/Darky.UsersNews.Service.git```
+Кастомный сервис для GML.Launcher предназначенный для работы с пользователями и новостями с возможностью интеграции как отдельный контейнер в docker compose лаунчера.
+
+### Установка
+Выполните команду ниже в директории вашего лаунчера
+```git clone https://github.com/darkywings/Darky.UserNews.Service.git```
+
+Должна получиться следующая структура проекта:
+```
+|--data
+|--frontend
+|--docker-compose.yml
+|--.env
+|--Darky.UserNews.Service
+```
 
 ## Настройка
-Создайте копию .env.example, переименуйте в .env и в содержимом укажите IP и PORT на котором будет работать API этого сервиса, а также желаемое название, номер версии API и ключ доступа к этому API(не давайте его рандомным людям, с его помощью можно управлять пользователями и новостями)
+Подготовьте файл ```.env``` вручную, используя образец ```./Darky.UserNews.Service/.env.example```
 
-## Запуск
-Сервис может работать как в докере так и напрямую
-Для прямого запуска просто запустите код __main__.py командой
-```python __main__.py```
+Все поля можно оставить по умолчанию, но рекомендуется указать другие данные для авторизации под ролью администратора(ADMIN_LOGIN и ADMIN_PASSWORD). А также поменять JWT_SECRET_KEY на свой, чтобы больше обезопасить API от несанкционированного доступа.
 
-Для запуска из под Docker Compose встройте его в свой docker-compose.yml вставив следующий кусочек туда
+### Запуск
+Сервис может работать как в Docker Compose так и напрямую
+
+#### Прямой запуск
+Установите зависимости
+```pip install -r requirements.txt```
+
+Запустите скрипт ```__main__.py```
+```python .``` или ```python __main__.py```
+
+#### Запуск через Docker Compose
+Впишите следующий кусок конфигурации в ваш docker-compose.yml
 ```
-darky-users-news-api
+darky-users-news-api:
   container_name: darky-users-news-api
   restart: always
   build:
-    context: ./Darky.UsersNews.Service
+    context: ./Darky.UserNews.Service
     dockerfile: Dockerfile
   ports:
     - "${PORT_DARKY_API}: 8000"
@@ -33,6 +51,17 @@ darky-users-news-api
   volumes:
     - ./data/AuthService:/app/data
 ```
-А также вставьте в .env файл строку ```PORT_DARKY_API=ЗДЕСЬ ЖЕЛАЕМЫЙ ПОРТ```
-Например:
+
+А также в файле ```.env``` вашего лаунчера пропишите желаемый порт на котором будет работать ваш сервис
 ```PORT_DARKY_API=8004```
+
+Теперь при запуске серверной части лаунчера у вас будет подниматься 4 контейнера, а не 3:
+```
+[+] Running 4/4
+ ✔ darky-users-news-api    Started
+ ✔ gml-web-api             Started
+ ✔ gml-frontend            Started
+ ✔ gml-web-skins           Started
+```
+
+Управлять аккаунтами и новостями можно напрямую через API Swagger сервиса по вашему ip и порту который вы указали для этого сервиса (```http://localhost:8004/docs``` например)

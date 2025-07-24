@@ -1,22 +1,28 @@
+import os
+from typing import Annotated
+
 import sqlite3
-from fastapi import APIRouter, HTTPException, status
+import dotenv
+from fastapi import APIRouter, HTTPException, status, Depends
 from passlib.context import CryptContext
 import uuid
 
 from models.models import *
-
 from logger.darky_logger import DarkyLogger
-from logger import config
+from configs.logger import config
+from security.admin import AdminSecurity
+
+dotenv.load_dotenv()
 
 # Конфигурация для хеширования паролей
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+security = AdminSecurity(os.getenv("JWT_SECRET_KEY"))
 
 class Users:
 
 
     def __init__(self,
-                 security_key):
+                 admin):
         self.logger = DarkyLogger("darky.users", configuration=config.LOGGER)
 
         self.logger.info(f"Initializing Users service...")
@@ -55,17 +61,17 @@ class Users:
                                   name="Delete User",
                                   description="Deleting user from database data",
                                   response_model=UserDeleteResponse)
-        self.router.add_api_route("/edit_uuid", self.edit_uuid, methods=["POST"],
+        self.router.add_api_route("/editUuid", self.edit_uuid, methods=["POST"],
                                   name="Edit User Uuid",
                                   description="Editing user's uuid on custom one",
                                   response_model=EditUuidResponse)
-        self.router.add_api_route("/get_all", self.get_users, methods=["GET"],
+        self.router.add_api_route("/getAll", self.get_users, methods=["GET"],
                                   name="Get Users",
                                   description="Getting all existing users in database",
                                   response_model=UserListResponse)
         self.logger.debug(f"Successful")
 
-        self.__security_key__ = security_key
+        self.admin = admin
 
         self.logger.info(f"Users service is initialized!")
 
@@ -188,25 +194,20 @@ class Users:
     
 
 
-    async def delete_user(self, data: UserDeleteRequest):
+    async def delete_user(self, data: UserDeleteRequest, authorized: Annotated[str, Depends(security.get_user)]):
+
+        if authorized["type"] != "admin" or not await self.admin.key_is_valid(authorized["data"]["login"], authorized["data"]["secret_key"]):
+            self.logger.error(f"You're not authorized or not an admin")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"Message": "Вы не авторизованы или не являетесь администратором!"}
+            )
 
         if not data.Login:
             self.logger.error(f"Login is required!")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={"Message": "Логин обязателен"}
-            )
-        if not data.AccessToken:
-            self.logger.error(f"AccessToken is required!")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Ключ доступа не указан"}
-            )
-        if data.AccessToken != self.__security_key__:
-            self.logger.error(f"Invalid AccessToken!")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Доступ запрещен: Неправильный ключ доступа"}
             )
         self.logger.info(f"Deleting user {data.Login}...")
         
@@ -252,19 +253,13 @@ class Users:
         
 
 
-    async def edit_uuid(self, data: EditUuidRequest):
+    async def edit_uuid(self, data: EditUuidRequest, authorized: Annotated[str, Depends(security.get_user)]):
 
-        if not data.AccessToken:
-            self.logger.error(f"AccessToken is required!")
+        if authorized["type"] != "admin" or not await self.admin.key_is_valid(authorized["data"]["login"], authorized["data"]["secret_key"]):
+            self.logger.error(f"You're not authorized or not an admin")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Требуется ключ доступа"}
-            )
-        if data.AccessToken != self.__security_key__:
-            self.logger.error(f"Invalid AccessToken")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Доступ запрещен: Неправильный ключ доступа"}
+                detail={"Message": "Вы не авторизованы или не являетесь администратором!"}
             )
         
         if not data.Login:
@@ -333,20 +328,13 @@ class Users:
         
 
 
-    async def get_users(self, accessToken:str):
-        
-        self.logger.info(f"Getting user list...")
-        if not accessToken:
-            self.logger.error(f"AccessToken is required!")
+    async def get_users(self, authorized: Annotated[str, Depends(security.get_user)]):
+
+        if authorized["type"] != "admin" or not await self.admin.key_is_valid(authorized["data"]["login"], authorized["data"]["secret_key"]):
+            self.logger.error(f"You're not authorized or not an admin")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Требуется ключ доступа"}
-            )
-        if accessToken != self.__security_key__:
-            self.logger.error(f"Invalid AccessToken")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"Message": "Доступ запрещен: Неправильный ключ доступа"}
+                detail={"Message": "Вы не авторизованы или не являетесь администратором!"}
             )
         
         self.logger.debug(f"Accessing to the database...")
